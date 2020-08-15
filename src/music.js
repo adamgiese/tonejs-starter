@@ -50,6 +50,7 @@ arpeggio(arpeggioSynth, Tone)
 const controls = {
   play: () => {
     console.log('play')
+    Tone.context.resume()
     Tone.Transport.start()
   },
   pause: () => {
