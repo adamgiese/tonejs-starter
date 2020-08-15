@@ -1,0 +1,19 @@
+{
+  "name": "tonejs-starter",
+  "version": "1.0.0",
+  "description": "A starter for ToneJS project, bundled by Parcel",
+  "main": "src/index.html",
+  "scripts": {
+    "test": "test",
+    "dev": "parcel src/index.html"
+  },
+  "keywords": [
+    "music"
+  ],
+  "author": "Adam Giese",
+  "license": "ISC",
+  "dependencies": {
+    "parcel-bundler": "^1.12.4",
+    "tone": "^14.7.39"
+  }
+}
