@@ -84,10 +84,22 @@ const arpeggios = (synth, Tone) => {
   followupLoop.iterations = FOLLOWUP_LOOP_ITERATION
 }
 
+const pings = (synth, Tone) => {
+  new Tone.Part((time, note) => {
+    console.log(time)
+    synth.triggerAttackRelease(note, "2n", time)
+  }, [
+    // pings
+    ['2:1:0', 'C6'],
+    ['3:1:0', 'G6'],
+    ['4:1:8', 'F#6'],
+  ]).start(0)
+}
+
 const score = (synths, Tone) => {
-  const [arpeggioSynth] = synths
-  console.log(arpeggioSynth)
+  const [arpeggioSynth, pingSynth] = synths
   arpeggios(arpeggioSynth, Tone)
+  pings(pingSynth, Tone)
 }
 
 export default score
