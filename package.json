@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "parcel-bundler": "^1.12.4",
+    "teoria": "^2.5.0",
     "tone": "^14.7.39"
   }
 }

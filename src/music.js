@@ -1,21 +1,25 @@
 import * as Tone from 'tone'
 import arpeggio from './score/arpeggio'
 
+/* Effects */
+
+const Reverb = new Tone.Reverb(3).toDestination();
+
 /* Setup the Synth */
 const arpeggioSynth = new Tone.Synth({
   "oscillator": {
     "phase": 0,
     "type": "sine"
   }
-})
+}).connect(Reverb)
 
-/* Write the Music */
+
 /* Add the Effects & "Wiring" */
 
 Tone.Transport.timeSignature = 3
 arpeggioSynth.toDestination()
 
-/* Connect the Controls */
+/* Connect the MUSIC */
 arpeggio(arpeggioSynth, Tone)
 
 const controls = {
