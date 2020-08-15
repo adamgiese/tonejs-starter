@@ -84,4 +84,10 @@ const arpeggios = (synth, Tone) => {
   followupLoop.iterations = FOLLOWUP_LOOP_ITERATION
 }
 
-export default arpeggios
+const score = (synths, Tone) => {
+  const [arpeggioSynth] = synths
+  console.log(arpeggioSynth)
+  arpeggios(arpeggioSynth, Tone)
+}
+
+export default score

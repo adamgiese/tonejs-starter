@@ -1,41 +1,25 @@
 import * as Tone from 'tone'
-import arpeggio from './score/arpeggio'
+import score from './score.js'
 
-/* Effects */
-
-const Reverb = new Tone.Reverb(3)
-Reverb.toDestination();
-
-/* Setup the Synth */
-const arpeggioSynth = new Tone.Synth({
-  "oscillator": {
-    "phase": 0,
-    "type": "sine"
-  }
-}).connect(Reverb)
-
-
-/* Add the Effects & "Wiring" */
-
+/* General Settings */
 Tone.Transport.timeSignature = 3
-arpeggioSynth.toDestination()
 
 /* Setup the "Recorder" */
-
 const audio = document.querySelector('audio')
 const destination = Tone.context.createMediaStreamDestination()
 const recorder = new MediaRecorder(destination.stream)
-arpeggioSynth.connect(destination)
-Reverb.connect(destination)
+const connectToDestinations = x => {
+  x.toDestination()      // speakers
+  x.connect(destination) // recording
+}
+
 Tone.Transport.schedule(time => {
   recorder.start()
-  /* start recording */
 }, 0)
 
 Tone.Transport.schedule(time => {
   recorder.stop()
-  /* stop recording */
-}, 13)
+}, 13) // TODO make this not manual
 
 const mediaData = []
 recorder.ondataavailable = e => mediaData.push(e.data)
@@ -44,8 +28,26 @@ recorder.onstop = e => {
   audio.src = URL.createObjectURL(blob)
 }
 
+/* Effects */
+
+const Reverb = new Tone.Reverb(3)
+connectToDestinations(Reverb)
+
+const PingPong = new Tone.PingPongDelay('8n', .3)
+connectToDestinations(PingPong)
+
+/* Setup the Synths */
+const arpeggioSynth = new Tone.Synth({
+  "oscillator": {
+    "phase": 0,
+    "type": "sine"
+  }
+}).chain(Reverb)
+connectToDestinations(arpeggioSynth)
+
+
 /* Connect the MUSIC */
-arpeggio(arpeggioSynth, Tone)
+score([arpeggioSynth], Tone)
 
 const controls = {
   play: () => {
