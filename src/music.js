@@ -1,4 +1,5 @@
 import * as Tone from 'tone'
+import arpeggio from './score/arpeggio'
 
 /* Setup the Synth */
 const arpeggioSynth = new Tone.Synth({
@@ -8,18 +9,14 @@ const arpeggioSynth = new Tone.Synth({
   }
 })
 
-
 /* Write the Music */
-
-new Tone.Loop((time) => {
-  arpeggioSynth.triggerAttackRelease("D4", "16n");
-}, "4n").start(0);
-
-
 /* Add the Effects & "Wiring" */
-synth.toDestination()
+
+Tone.Transport.timeSignature = 3
+arpeggioSynth.toDestination()
 
 /* Connect the Controls */
+arpeggio(arpeggioSynth, Tone)
 
 const controls = {
   play: () => {
