@@ -34,8 +34,12 @@ const transposeFromScales = (oldScale, newScale) => direction => (_note) => {
 }
 
 const cLydian = teoria.note('c').scale('lydian').simple()
+const dMixolydian = teoria.note('d').scale('mixolydian').simple()
+const eAeolian = teoria.note('e').scale('aeolian').simple()
+const fsLocrian = teoria.note('f#').scale('locrian').simple()
+const gIonian = teoria.note('g').scale('ionian').simple()
 const aDorian = teoria.note('a').scale('dorian').simple()
-const fromCLydianToADorian = transposeFromScales(cLydian, aDorian)('down')
+const bPhrygian = teoria.note('b').scale('phrygian').simple()
 
 const arpeggios = (synth, Tone) => {
   const {
@@ -43,6 +47,8 @@ const arpeggios = (synth, Tone) => {
     Time,
     Loop,
   } = Tone
+
+  let runningTime = 0
 
   /* possibly make its own helper function */
   const arpeggiateNotes = (duration, offset = 0) => notes => {
@@ -55,44 +61,113 @@ const arpeggios = (synth, Tone) => {
     })
   }
 
-  /* the initial arpeggios that launch off the song */
 
-  const OPENING_LOOP_ITERATION = 4
-  const OPENING_LOOP_NOTES = 'C3|E3|G3|B3|D4|E4|G4|F#4|D4|B3|G3|D3'.split('|')
-  const OPENING_LOOP_NOTE_DURATION = '16n'
 
-  const openingLoopDuration = OPENING_LOOP_NOTES.length * Time(OPENING_LOOP_NOTE_DURATION).toSeconds()
+  /* Loop Constants */
+  const LOOP_ITERATIONS = 4
+  const LOOP_ITERATIONS_QUICK = 2
+  const LOOP_NOTE_DURATION = '16n'
 
-  const openingLoop = new Loop(time => {
-    arpeggiateNotes(OPENING_LOOP_NOTE_DURATION, time)(OPENING_LOOP_NOTES).forEach(x => {
+  /* Loop Helper Functions */
+  const getLoopDuration = notes => notes.length * Time(LOOP_NOTE_DURATION).toSeconds()
+  const getLoop = notes => time => {
+    arpeggiateNotes(LOOP_NOTE_DURATION, time)(notes).forEach(x => {
       synth.triggerAttackRelease(...x)
     })
-  }, openingLoopDuration).start(0)
-  openingLoop.iterations = OPENING_LOOP_ITERATION
+  }
 
-  /* followup with a lowered arpeggio */
-  const FOLLOWUP_LOOP_ITERATION = OPENING_LOOP_ITERATION
-  const FOLLOWUP_LOOP_NOTE_DURATION = '16n'
-  const FOLLOWUP_LOOP_NOTES = OPENING_LOOP_NOTES.map(fromCLydianToADorian)
-  const followupLoopDuration = FOLLOWUP_LOOP_NOTES.length * Time(FOLLOWUP_LOOP_NOTE_DURATION).toSeconds()
+  const createLoop = (notes, time, iterations) => {
+    // creates loop & returns length of loop
+    const loop = getLoop(notes)
+    const loopDuration = getLoopDuration(notes)
 
-  const followupLoop = new Loop(time => {
-    arpeggiateNotes(FOLLOWUP_LOOP_NOTE_DURATION, time)(FOLLOWUP_LOOP_NOTES).forEach(x => {
-      synth.triggerAttackRelease(...x)
-    })
-  }, followupLoopDuration).start(openingLoopDuration * OPENING_LOOP_ITERATION)
-  followupLoop.iterations = FOLLOWUP_LOOP_ITERATION
+    new Loop(loop, loopDuration)
+      .start(time)
+      .set({iterations})
+
+    return (iterations * loopDuration)
+  }
+
+  let primary; {
+    const tonic = 'C3|E3|G3|B3|D4|E4|G4|F#4|D4|B3|G3|D3'.split('|')
+    const submediant = tonic.map(transposeFromScales(cLydian,aDorian)('down'))
+    const subdominant = tonic.map(transposeFromScales(cLydian,fsLocrian)('down'))
+    const subtonic = tonic.map(transposeFromScales(cLydian,bPhrygian)('down'))
+    const mediant = tonic.map(transposeFromScales(cLydian,eAeolian)('up'))
+
+    primary = { tonic, submediant, subdominant, subtonic, mediant }
+  }
+
+  let secondary; {
+    const tonic = 'C5|B4|G4|F#4|D4|C4|B3|G3|F#3|G3|E3|D3'.split('|')
+    const supertonic = tonic.map(transposeFromScales(cLydian, dMixolydian)('up'))
+    const subdominant = tonic.map(transposeFromScales(cLydian,fsLocrian)('up'))
+    const dominant = tonic.map(transposeFromScales(cLydian,gIonian)('down'))
+    const subtonic = tonic.map(transposeFromScales(cLydian,bPhrygian)('down'))
+
+    secondary = {
+      tonic,
+      supertonic,
+      subdominant,
+      dominant,
+      subtonic,
+    }
+  }
+
+  /* music helper functions */
+
+  const reverse = x => [...x].reverse()
+
+  /* MUSIC UP IN HERE */
+
+  runningTime += createLoop(primary.tonic, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.submediant, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.tonic, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.subdominant, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(primary.subtonic, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(primary.tonic, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.submediant, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.tonic, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(primary.mediant, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(primary.submediant, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(primary.subtonic, runningTime, LOOP_ITERATIONS_QUICK)
+
+  runningTime += createLoop(secondary.tonic, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(secondary.supertonic, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(secondary.subdominant, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(secondary.subtonic, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(reverse(secondary.tonic), runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(reverse(secondary.subtonic), runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(reverse(secondary.dominant), runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(reverse(secondary.supertonic), runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(secondary.tonic, runningTime, LOOP_ITERATIONS_QUICK)
 }
 
 const pings = (synth, Tone) => {
-  new Tone.Part((time, note) => {
-    console.log(time)
-    synth.triggerAttackRelease(note, "2n", time)
+  new Tone.Part((time, {note, velocity}) => {
+    synth.triggerAttackRelease(note, "2n", time, velocity)
   }, [
     // pings
-    ['2:1:0', 'C6'],
-    ['3:1:0', 'G6'],
-    ['4:1:8', 'F#6'],
+    [{
+      time: '2:1:3',
+      note: 'C6',
+      velocity: 1,
+    }],
+    [{
+      time: '3:1:2',
+      note: 'G6',
+      velocity: 1,
+    }],
+    [{
+      time: '4:1:8',
+      note: 'F#6',
+      velocity: 1,
+    }],
+    [{
+      time: '6:1:8',
+      note: 'D6',
+      velocity: .5,
+    }],
   ]).start(0)
 }
 
