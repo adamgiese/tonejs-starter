@@ -48,7 +48,7 @@ const arpeggios = (synth, Tone) => {
     Loop,
   } = Tone
 
-  let runningTime = 0
+  let runningTime = Time('6:0:0').toSeconds()
 
   /* possibly make its own helper function */
   const arpeggiateNotes = (duration, offset = 0) => notes => {
@@ -72,7 +72,7 @@ const arpeggios = (synth, Tone) => {
   const getLoopDuration = notes => notes.length * Time(LOOP_NOTE_DURATION).toSeconds()
   const getLoop = notes => time => {
     arpeggiateNotes(LOOP_NOTE_DURATION, time)(notes).forEach(x => {
-      synth.triggerAttackRelease(...x)
+      synth.triggerAttackRelease(...x, .8)
     })
   }
 
@@ -89,7 +89,7 @@ const arpeggios = (synth, Tone) => {
   }
 
   let primary; {
-    const tonic = 'C3|E3|G3|B3|D4|E4|G4|F#4|D4|B3|G3|D3'.split('|')
+    const tonic = 'C5|B4|G4|E4|G4|B4'.split('|')
     const submediant = tonic.map(transposeFromScales(cLydian,aDorian)('down'))
     const subdominant = tonic.map(transposeFromScales(cLydian,fsLocrian)('down'))
     const subtonic = tonic.map(transposeFromScales(cLydian,bPhrygian)('down'))
@@ -99,7 +99,7 @@ const arpeggios = (synth, Tone) => {
   }
 
   let secondary; {
-    const tonic = 'C5|B4|G4|F#4|D4|C4|B3|G3|F#3|G3|E3|D3'.split('|')
+    const tonic = 'C4|C4|E4|E4|G4|A4|B4|C5|F#4|G4|E4|D4'.split('|')
     const supertonic = tonic.map(transposeFromScales(cLydian, dMixolydian)('up'))
     const subdominant = tonic.map(transposeFromScales(cLydian,fsLocrian)('up'))
     const dominant = tonic.map(transposeFromScales(cLydian,gIonian)('down'))
@@ -141,6 +141,13 @@ const arpeggios = (synth, Tone) => {
   runningTime += createLoop(reverse(secondary.dominant), runningTime, LOOP_ITERATIONS_QUICK)
   runningTime += createLoop(reverse(secondary.supertonic), runningTime, LOOP_ITERATIONS_QUICK)
   runningTime += createLoop(secondary.tonic, runningTime, LOOP_ITERATIONS_QUICK)
+
+  runningTime += createLoop(primary.tonic, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.submediant, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.tonic, runningTime, LOOP_ITERATIONS)
+  runningTime += createLoop(primary.subdominant, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(primary.subtonic, runningTime, LOOP_ITERATIONS_QUICK)
+  runningTime += createLoop(primary.tonic, runningTime, LOOP_ITERATIONS)
 }
 
 const pings = (synth, Tone) => {
@@ -149,24 +156,24 @@ const pings = (synth, Tone) => {
   }, [
     // pings
     [{
-      time: '2:1:3',
+      time: '0:1:3',
       note: 'C6',
-      velocity: 1,
+      velocity: .7,
     }],
     [{
-      time: '3:1:2',
+      time: '1:1:2',
       note: 'G6',
-      velocity: 1,
+      velocity: .7,
+    }],
+    [{
+      time: '2:1:8',
+      note: 'F#6',
+      velocity: .7,
     }],
     [{
       time: '4:1:8',
-      note: 'F#6',
-      velocity: 1,
-    }],
-    [{
-      time: '6:1:8',
       note: 'D6',
-      velocity: .5,
+      velocity: .3,
     }],
   ]).start(0)
 }
