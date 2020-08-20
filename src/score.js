@@ -42,7 +42,8 @@ const gIonian = teoria.note('g').scale('ionian').simple()
 const aDorian = teoria.note('a').scale('dorian').simple()
 const bPhrygian = teoria.note('b').scale('phrygian').simple()
 
-const arpeggios = (synth, Tone) => {
+const score = (synths, Tone) => {
+  const [arpeggioSynth, pingSynth] = synths
   const {
     Transport,
     Time,
@@ -63,6 +64,16 @@ const arpeggios = (synth, Tone) => {
   }
 
 
+  const ping = (note, time = '0:0:0', velocity = .7) => {
+    console.log(note, time, velocity)
+    Tone.Transport.schedule((time) => {
+      console.log(time)
+      pingSynth.triggerAttackRelease(note, "1n", time, velocity)
+    }, Tone.Time(time));
+  }
+  Tone.Transport.schedule(function(time){
+	//do something with the time
+}, "16:0:0");
 
   /* Loop Constants */
   const LOOP_ITERATIONS = 2
@@ -73,7 +84,7 @@ const arpeggios = (synth, Tone) => {
   const getLoopDuration = notes => notes.length * Time(LOOP_NOTE_DURATION).toSeconds()
   const getLoop = notes => time => {
     arpeggiateNotes(LOOP_NOTE_DURATION, time)(notes).forEach(x => {
-      synth.triggerAttackRelease(...x, .8)
+      arpeggioSynth.triggerAttackRelease(...x, .1)
     })
   }
 
@@ -121,25 +132,9 @@ const arpeggios = (synth, Tone) => {
   ].forEach(chord => {
     runningTime += createLoop(primary[chord], runningTime, 1)
   })
-}
 
-const pings = (synth, Tone) => {
-  new Tone.Part((time, {note, velocity}) => {
-    synth.triggerAttackRelease(note, "2n", time, velocity)
-  }, [
-    // pings
-    [{
-      time: '0:0:0',
-      note: 'C6',
-      velocity: .7,
-    }],
-  ]).start(0)
-}
-
-const score = (synths, Tone) => {
-  const [arpeggioSynth, pingSynth] = synths
-  arpeggios(arpeggioSynth, Tone)
-  pings(pingSynth, Tone)
+  ping('C5', '0:0:0', 1)
+  ping('G4', '4:0:0', 1)
 }
 
 export default score

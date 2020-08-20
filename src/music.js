@@ -40,17 +40,13 @@ const SoftGain = new Tone.Gain(.1)
 connectToDestinations(SoftGain)
 
 /* Setup the Synths */
-const arpeggioSynth = new Tone.Synth({
-  "oscillator": {
-    "phase": 0,
-    "type": "sine"
-  }
-}).connect(Reverb)
+const arpeggioSynth = new Tone.Synth().connect(Reverb)
+arpeggioSynth.oscillator.type = 'sine'
 connectToDestinations(arpeggioSynth)
 
-const pingSynth = new Tone.Synth().connect(PingPong).connect(SoftGain)
+const pingSynth = new Tone.Synth().connect(PingPong)
 pingSynth.oscillator.type = 'sine'
-pingSynth.volume.value = -20
+pingSynth.volume.value = -8
 connectToDestinations(pingSynth)
 
 /* Connect the MUSIC */
