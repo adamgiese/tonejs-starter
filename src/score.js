@@ -1,38 +1,6 @@
 import teoria from 'teoria'
-
-const transposeFromScales = (oldScale, newScale) => direction => (_note) => {
-  const note = teoria.note(_note)
-
-  const oldName = `${note.name()}${note.accidental()}`
-  const oldOctave = note.octave()
-
-  const newName = newScale[oldScale.indexOf(oldName)].toUpperCase()
-  const isOriginalHigher = note.midi() > teoria.note(`${newName}${oldOctave}`).midi()
-
-  const getOctaveOffset = () => {
-    const isUp = direction === 'up'
-    const isDown = !isUp
-
-    if (isUp && isOriginalHigher) {
-      return 1
-    }
-    if (isUp && !isOriginalHigher) {
-      return 0
-    }
-    if (isDown && isOriginalHigher) {
-      return 0
-    }
-    if (isDown && !isOriginalHigher) {
-      return -1
-    }
-  }
-  const octaveOffset = getOctaveOffset()
-
-  const newOctave = oldOctave + octaveOffset
-
-  return `${newName}${newOctave}`
-}
-
+import transposeFromScales from './shared/transposeFromScales.js'
+import isValidNote from './shared/isValidNote.js'
 const scale = (root, scaleName) => teoria.note(root).scale(scaleName).simple()
 
 const score = (synths, Tone) => {
@@ -64,20 +32,17 @@ const score = (synths, Tone) => {
       pingSynth.triggerAttackRelease(note, "1n", time, velocity)
     }, Tone.Time(time));
   }
-  Tone.Transport.schedule(function(time){
-	//do something with the time
-}, "16:0:0");
 
   /* Loop Constants */
-  const LOOP_ITERATIONS = 2
-  const LOOP_ITERATIONS_QUICK = 1
   const LOOP_NOTE_DURATION = '16n'
 
   /* Loop Helper Functions */
   const getLoopDuration = notes => notes.length * Time(LOOP_NOTE_DURATION).toSeconds()
   const getLoop = notes => time => {
     arpeggiateNotes(LOOP_NOTE_DURATION, time)(notes).forEach(x => {
-      arpeggioSynth.triggerAttackRelease(...x, .1)
+      if (isValidNote(x[0])) {
+        arpeggioSynth.triggerAttackRelease(...x, .1)
+      }
     })
   }
 
@@ -97,7 +62,7 @@ const score = (synths, Tone) => {
     const key = scale('c', 'major')
     const transpose = (direction, to) => transposeFromScales(key, to)(direction)
 
-    const I = 'C3|C4|G4|E4|D4|C4'.split('|').flatMap(x => [x,x])
+    const I = 'C4|C4|r|B4|r|G4|r|E5|r|B4|r|B4|C5|r|D4|r'.split('|').flatMap(x => [x,x])
     const IV = I.map(transpose('up', scale('f', 'lydian')))
     const V = I.map(transpose('up', scale('g', 'mixolydian')))
     const VIb = I.map(transpose('down', scale('ab', 'ionian')))
@@ -114,20 +79,14 @@ const score = (synths, Tone) => {
 
   /* MUSIC UP IN HERE */
 
-  [
-    'I', 'I',
-    'IV', 'IV',
-    'I', 'I',
-    'V', 'IV',
-    'I', 'I',
-    'VIb', 'VIIb',
-    'I', 'I',
-  ].forEach(chord => {
-    runningTime += createLoop(primary[chord], runningTime, 1)
-  })
+  const playArpeggio = chord => runningTime += createLoop(primary[chord], runningTime, 1)
+  const arp = chords => chords.forEach(playArpeggio)
 
-  ping('C5', '0:0:0', 1)
-  ping('G4', '4:0:0', 1)
+  ping('C5', runningTime, 1)
+  arp([ 'I', 'I', 'IV', 'IV' ])
+
+  ping('G4', runningTime, 1)
+  arp([ 'I', 'I', 'V', 'IV', 'I', 'I', 'VIb', 'VIIb', 'I', 'I'])
 }
 
 export default score
