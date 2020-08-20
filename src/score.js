@@ -34,13 +34,6 @@ const transposeFromScales = (oldScale, newScale) => direction => (_note) => {
 }
 
 const scale = (root, scaleName) => teoria.note(root).scale(scaleName).simple()
-const cLydian = teoria.note('c').scale('lydian').simple()
-const dMixolydian = teoria.note('d').scale('mixolydian').simple()
-const eAeolian = teoria.note('e').scale('aeolian').simple()
-const fsLocrian = teoria.note('f#').scale('locrian').simple()
-const gIonian = teoria.note('g').scale('ionian').simple()
-const aDorian = teoria.note('a').scale('dorian').simple()
-const bPhrygian = teoria.note('b').scale('phrygian').simple()
 
 const score = (synths, Tone) => {
   const [arpeggioSynth, pingSynth] = synths
